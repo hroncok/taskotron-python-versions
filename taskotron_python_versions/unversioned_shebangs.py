@@ -1,4 +1,3 @@
-import sys
 import libarchive
 
 from .common import log, write_to_artifact
@@ -14,13 +13,6 @@ INFO_URL = ' https://pagure.io/packaging-committee/issue/698'
 
 FORBIDDEN_SHEBANGS = ['#!/usr/bin/python', '#!/usr/bin/env python']
 
-if sys.version > '3':
-    def to_bytes(s):
-        return str.encode(s)
-else:
-    def to_bytes(s):
-        return s
-
 
 def matches(line, query):
     """Both arguments must be of a type bytes"""
@@ -33,7 +25,6 @@ def get_problematic_files(archive, query):
     are not in the plain text format. Bytes are read from the file and
     the shebang query has to be of the same type.
     """
-
     problematic = set()
     with libarchive.file_reader(archive) as a:
         for entry in a:
@@ -41,10 +32,15 @@ def get_problematic_files(archive, query):
                 first_line = next(entry.get_blocks(), '').splitlines()[0]
             except IndexError:
                 continue  # file is empty
-            if matches(first_line, to_bytes(query)):
+            if matches(first_line, query.encode()):
                 problematic.add(entry.pathname.lstrip('.'))
 
     return problematic
+
+
+def shebang_to_require(shebang):
+    """Convert shebang to the format of requirement."""
+    return shebang.split()[0][2:].encode()
 
 
 def get_scripts_summary(package):
@@ -52,11 +48,12 @@ def get_scripts_summary(package):
     Content of archive is processed only if package requires
     unversioned python binary or env.
     """
-    scripts_summary = {key: set() for key in FORBIDDEN_SHEBANGS}
+    scripts_summary = {}
 
-    for key in scripts_summary.keys():
-        if to_bytes(key.split()[0][2:]) in package.require_names:
-            scripts_summary[key] = get_problematic_files(package.path, key)
+    for shebang in FORBIDDEN_SHEBANGS:
+        if shebang_to_require(shebang) in package.require_names:
+            scripts_summary[shebang] = get_problematic_files(
+                package.path, shebang)
     return scripts_summary
 
 
@@ -79,11 +76,10 @@ def task_unversioned_shebangs(packages, koji_build, artifact):
 
     for package, pkg_summary in problem_rpms.items():
         for shebang, scripts in pkg_summary.items():
-            if scripts:
-                outcome = 'FAILED'
-                shebang_message += \
-                    '{}\n * Scripts containing `{}` shebang:\n   {}'.format(
-                        package, shebang, '\n   '.join(scripts))
+            outcome = 'FAILED'
+            shebang_message += \
+                '{}\n * Scripts containing `{}` shebang:\n   {}'.format(
+                    package, shebang, '\n   '.join(sorted(scripts)))
 
     detail = check.CheckDetail(
         checkname='python-versions.unversioned_shebangs',
