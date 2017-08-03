@@ -3,7 +3,7 @@ import libarchive
 
 from .common import log, write_to_artifact
 
-MESSAGE = """These RPMs contains problematic shebang in some of the scripts:
+MESSAGE = """These RPMs contain problematic shebang in some of the scripts:
 {}
 This is discouraged and should be avoided. Please check the shebangs
 and use either `#!/usr/bin/python2` or `#!/usr/bin/python3`.
@@ -23,12 +23,15 @@ else:
 
 
 def matches(line, query):
+    """Both arguments must be of a type bytes"""
     return line == query or line.startswith(query + b' ')
 
 
 def get_problematic_files(archive, query):
     """Search for the files inside archive with the first line
-    matching given query.
+    matching given query. Some of the files can contain data, which
+    are not in the plain text format. Bytes are read from the file and
+    the shebang query has to be of the same type.
     """
 
     problematic = set()
@@ -37,7 +40,7 @@ def get_problematic_files(archive, query):
             try:
                 first_line = next(entry.get_blocks(), '').splitlines()[0]
             except IndexError:
-                continue
+                continue  # file is empty
             if matches(first_line, to_bytes(query)):
                 problematic.add(entry.pathname.lstrip('.'))
 
@@ -46,8 +49,8 @@ def get_problematic_files(archive, query):
 
 def get_scripts_summary(package):
     """Collect problematic scripts data for given RPM package.
-    Content of archive is processed only package require
-    unversioned python binary.
+    Content of archive is processed only if package requires
+    unversioned python binary or env.
     """
     scripts_summary = {key: set() for key in FORBIDDEN_SHEBANGS}
 
@@ -59,7 +62,7 @@ def get_scripts_summary(package):
 
 def task_unversioned_shebangs(packages, koji_build, artifact):
     """Check if some of the binaries contains '/usr/bin/python'
-    shebang or 'usr/bin/env' shebang.
+    shebang or '/usr/bin/env python' shebang.
     """
     # libtaskotron is not available on Python 3, so we do it inside
     # to make the above functions testable anyway
@@ -74,7 +77,6 @@ def task_unversioned_shebangs(packages, koji_build, artifact):
         log.debug('Checking shebangs of {}'.format(package.filename))
         problem_rpms[package.nvr] = get_scripts_summary(package)
 
-    log.debug("\n\nPROBLEM RPMS: {}".format(problem_rpms))
     for package, pkg_summary in problem_rpms.items():
         for shebang, scripts in pkg_summary.items():
             if scripts:

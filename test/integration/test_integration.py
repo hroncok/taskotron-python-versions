@@ -304,7 +304,7 @@ def test_artifact_contains_unversioned_shebangs_and_looks_as_expected(
     print(artifact)
 
     assert dedent("""
-        These RPMs contains problematic shebang in some of the scripts:
+        These RPMs contain problematic shebang in some of the scripts:
         tracer-0.6.9-1.fc23
          * Scripts containing `#!/usr/bin/python` shebang:
            /usr/bin/tracer
