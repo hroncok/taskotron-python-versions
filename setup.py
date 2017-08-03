@@ -22,7 +22,7 @@ setup(
     packages=find_packages(),
     install_requires=['libarchive-c'],
     setup_requires=['setuptools', 'pytest-runner'],
-    tests_require=['pytest', 'pyyaml', 'libarchive-c'],
+    tests_require=['pytest', 'pyyaml'],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
