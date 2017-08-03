@@ -15,7 +15,8 @@ setup(
     long_description=long_description,
     keywords='taskotron fedora python rpm',
     author='Miro Hrončok, Iryna Shcherbina, Michal Cyprian',
-    author_email='mhroncok@redhat.com, ishcherb@redhat.com, mcyprian@redhat.com',
+    author_email=('mhroncok@redhat.com, ishcherb@redhat.com, '
+                  'mcyprian@redhat.com'),
     url='https://github.com/fedora-python/taskotron-python-versions',
     license='Public Domain',
     packages=find_packages(),

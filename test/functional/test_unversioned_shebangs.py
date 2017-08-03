@@ -34,7 +34,8 @@ def test_matches(line, query, expected):
      '#!/usr/bin/python', {'/usr/bin/tracer'}),
     ('python3-django-1.10.7-1.fc26.noarch.rpm', '#!/usr/bin/env python',
      {'/usr/lib/python3.6/site-packages/django/bin/django-admin.py',
-      '/usr/lib/python3.6/site-packages/django/conf/project_template/manage.py-tpl'}),
+      ('/usr/lib/python3.6/site-packages/'
+       'django/conf/project_template/manage.py-tpl')}),
     ('python3-django-1.10.7-1.fc26.noarch.rpm', '#!/usr/bin/python', set()),
     ('pyserial-2.7-6.fc25.noarch.rpm', '#!/usr/bin/python', set()),
 ))
@@ -50,7 +51,8 @@ def test_get_problematic_files(archive, query, expected):
      {'#!/usr/bin/python': set(),
       '#!/usr/bin/env python':
       {'/usr/lib/python3.6/site-packages/django/bin/django-admin.py',
-       '/usr/lib/python3.6/site-packages/django/conf/project_template/manage.py-tpl'}}),
+       ('/usr/lib/python3.6/site-packages/'
+        'django/conf/project_template/manage.py-tpl')}}),
     ('pyserial-2.7-6.fc25.noarch.rpm',
      {'#!/usr/bin/python': set(),
       '#!/usr/bin/env python': set()}),
