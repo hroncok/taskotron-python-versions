@@ -15,6 +15,8 @@ Currently the following checks are available:
 
 -  Whether only Python 2 version of the package contains the executables.
 
+-  Whether the package uses versioned shebangs in its executables.
+
 Running
 -------
 
