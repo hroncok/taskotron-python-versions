@@ -6,7 +6,7 @@ from taskotron_python_versions.unversioned_shebangs import (
     shebang_to_require,
     get_scripts_summary,
 )
-from .common import pkg, gpkg
+from .common import gpkg, gpkg_path
 
 
 @pytest.mark.parametrize(('line', 'query', 'expected'), (
@@ -27,17 +27,17 @@ def test_matches(line, query, expected):
 
 
 @pytest.mark.parametrize(('archive', 'query', 'expected'), (
-    ('tracer-0.6.9-2.fc25.noarch.rpm',
+    ('tracer*',
      '#!/usr/bin/python', {'/usr/bin/tracer'}),
-    ('python3-django-1.10.7-1.fc26.noarch.rpm', '#!/usr/bin/env python',
+    ('python3-django*', '#!/usr/bin/env python',
      {'/usr/lib/python3.6/site-packages/django/bin/django-admin.py',
       ('/usr/lib/python3.6/site-packages/'
        'django/conf/project_template/manage.py-tpl')}),
-    ('python3-django-1.10.7-1.fc26.noarch.rpm', '#!/usr/bin/python', set()),
-    ('pyserial-2.7-6.fc25.noarch.rpm', '#!/usr/bin/python', set()),
+    ('python3-django*', '#!/usr/bin/python', set()),
+    ('pyserial*', '#!/usr/bin/python', set()),
 ))
 def test_get_problematic_files(archive, query, expected):
-    assert get_problematic_files(pkg(archive), query) == expected
+    assert get_problematic_files(gpkg_path(archive), query) == expected
 
 
 @pytest.mark.parametrize(('shebang', 'expected'), (
@@ -49,15 +49,15 @@ def test_shebang_to_require(shebang, expected):
     assert shebang_to_require(shebang) == expected
 
 
-@pytest.mark.parametrize(('path', 'expected'), (
-    ('tracer-0.6.9-2.fc25.noarch.rpm',
+@pytest.mark.parametrize(('glob', 'expected'), (
+    ('tracer*',
      {'#!/usr/bin/python': {'/usr/bin/tracer'}}),
-    ('python3-django-1.10.7-1.fc26.noarch.rpm',
+    ('python3-django*',
      {'#!/usr/bin/env python':
       {'/usr/lib/python3.6/site-packages/django/bin/django-admin.py',
        ('/usr/lib/python3.6/site-packages/'
         'django/conf/project_template/manage.py-tpl')}}),
-    ('pyserial-2.7-6.fc25.noarch.rpm', {}),
+    ('pyserial*', {}),
 ))
-def test_get_scripts_summary(path, expected):
-    assert get_scripts_summary(gpkg(path)) == expected
+def test_get_scripts_summary(glob, expected):
+    assert get_scripts_summary(gpkg(glob)) == expected
